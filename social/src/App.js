@@ -12,46 +12,50 @@ import PostPage from "./PostPage";
 import {Routes,Route, Link, Navigate, useNavigate} from 'react-router-dom'
 import Feed from "./Feed";
 import { format } from "date-fns";
-
+import Edit from "./Edit";
+import api from "./api/file";
+import useWindowSize from "./hooks/useWindowSize";
+import useAxiosFetch from "./hooks/useAxiosFetch";
+import { DataProvider } from "./context/DataContext";
 
 function App() {
-  const[posts,setPosts]=useState([
-    {
-      id:1,
-      title:"My first Post",
-      datetime:"July 01,2021 11:17:35 AM",
-      body:"Make a video about Tesla q1 results"
-    },
-    {
-      id:2,
-      title:"My second Post",
-      datetime:"July 01,2021 11:17:35 AM",
-      body:"Make a video about Tesla q1 results"
-    },
-    {
-      id:3,
-      title:"My Third Post",
-      datetime:"July 01,2021 11:17:35 AM",
-      body:"Make a video about Tesla q1 results"
-    },
-    {
-      id:4,
-      title:"My fourth Post",
-      datetime:"July 01,2021 11:17:35 AM",
-      body:"Make a video about Tesla q1 results"
-    },
-    {
-      id:5,
-      title:"My fifth Post",
-      datetime:"July 01,2021 11:17:35 AM",
-      body:"Make a video about Tesla q1 results"
-    }
-  ])
+  const[posts,setPosts]=useState([])
   const[search,setSearch]=useState('');
   const[searchResults,setSearchResults]=useState([])
   const[postTitle,setPostTitle]=useState('');
   const[postBody,setPostBody]=useState('');
+  const[editTitle,setEditTitle]=useState('');
+  const[editBody,setEditBody]=useState('');
   const navigate=useNavigate()
+  const{width}=useWindowSize()
+  /*const{data,fetchError,isLoading}=useAxiosFetch("http://localhost:3500/posts")
+  useEffect(()=>{
+    setPosts(data)
+  },[data])
+  this matter i after complete study last study
+  */
+  //meall code keal codeku pathilaka elluthalam
+
+  useEffect(()=>{
+    const fetchPosts=async()=>{
+      try{
+const response=await api.get("/posts")
+setPosts(response.data)
+      }
+      catch(err){
+        if(err.response){
+          console.log(err.response.data)
+          console.log(err.response.status)
+          console.log(err.response.headers)
+        }else{
+          console.log(`Error: ${err.message}`)
+        }
+
+      }
+    }
+
+    fetchPosts()
+  },[])
 
 
   useEffect(()=>{
@@ -62,28 +66,82 @@ function App() {
   setSearchResults(filteredResults.reverse());
 },[posts,search])
 
-const handleSubmit=(e)=>{
+const handleSubmit=async (e)=>{
   e.preventDefault()
   const id=posts.length?posts[posts.length-1].id+1:1
   const datetime=format(new Date(),'MMMM dd,yyyypp')
   const newPost={id,title:postTitle,datetime,body:postBody};
-  const allPosts=[...posts,newPost]
+  try{
+  const response=await api.post("/posts",newPost);
+  const allPosts=[...posts,response.data]
   setPosts(allPosts)
   setPostTitle('');
   setPostBody('')
   navigate("/")
+  }
+  catch(err){
+    if(err.response){
+      console.log(err.response.data)
+      console.log(err.response.status)
+      console.log(err.response.headers)
+    }else{
+      console.log(`Error: ${err.message}`)
+    }
+
+  }
 
 }
-const handleDelete=(id)=>{
+const handleEdit=async(id)=>{
+  const datetime=format(new Date(),'MMMM dd,yyyypp')
+  const updatedPost={id,title:editTitle,datetime,body:editBody};
+try{
+  const response=await api.put(`/posts/${id}`,updatedPost);
+  setPosts(posts.map(post=>post.id===id?{...response.data}:post))
+  setEditTitle('');
+  setEditBody('')
+  navigate("/")
+
+}
+catch(err){
+  if(err.response){
+    console.log(err.response.data)
+    console.log(err.response.status)
+    console.log(err.response.headers)
+  }else{
+    console.log(`Error: ${err.message}`)
+  }
+
+}
+
+
+}
+const handleDelete= async (id)=>{
+  try{
+    await api.delete(`posts/${id}`);
+  
   const postsList=posts.filter(post=>post.id!==id);
   setPosts(postsList)
   navigate("/")
+  }
+  catch(err){
+    if(err.response){
+      console.log(err.response.data)
+      console.log(err.response.status)
+      console.log(err.response.headers)
+    }else{
+      console.log(`Error: ${err.message}`)
+    }
+
+  }
 }
 
   return (
 
     <div className="App">
-       <Header title="Social Media App"/>
+     
+       <Header title="Social Media App"
+       width={width}
+       />
        <Nav 
        search={search}
        setSearch={setSearch}
@@ -91,7 +149,10 @@ const handleDelete=(id)=>{
        <Routes>
 
      <Route path="/" element={
-       <Home posts={searchResults}/>}/>
+       <Home posts={searchResults}
+       isLoading={isLoading}
+       fetchError={fetchError}
+       />}/>
        <Route path="post"> 
        <Route index element={
        <NewPost
@@ -100,17 +161,28 @@ const handleDelete=(id)=>{
        postBody={postBody}
        setPostTitle={setPostTitle}
        setPostBody={setPostBody}
-       
        />}/>
        <Route path=":id" element={<PostPage posts={posts} 
        handleDelete={handleDelete}
        />}/>
        </Route>
+       <Route path="/edit/:id" 
+       element={<Edit
+       posts={posts}
+       handleEdit={handleEdit}
+       editBody={editBody}
+       setEditBody={setEditBody}
+       editTitle={editTitle}
+       setEditTitle={setEditTitle}
+       
+       />}/>
 
      
 <Route path="about" element={<About/>}/>
 <Route path="*" element={<Missing/>}/>
    </Routes>
+   <Footer/>
+
     </div>
   );
 }

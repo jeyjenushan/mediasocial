@@ -1,5 +1,6 @@
 import React from "react";
 import {Link, useParams} from 'react-router-dom'
+import Edit from "./Edit";
 const PostPage=({posts,handleDelete})=>{
     const {id}=useParams();
     const post=posts.find(post=>(post.id).toString()==id);
@@ -17,7 +18,8 @@ const PostPage=({posts,handleDelete})=>{
                     <p className="postBody">
                         {post.body}
                     </p>
-                    <button onClick={()=>handleDelete(post.id)}>Delete Post</button>
+                    <button className="deletebutton" onClick={()=>handleDelete(post.id)}>Delete Post</button>
+                   <Link to={`/edit/${post.id}`}><button className="editbutton">Edit Post</button></Link>
                     </>
                 }
                 {!post && 

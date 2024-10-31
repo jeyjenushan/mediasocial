@@ -1,0 +1,22 @@
+{
+  "posts": [
+    {
+      "id": "1",
+      "title": "My first Post",
+      "datetime": "July 01,2021 11:17:35 AM",
+      "body": "Make a video about Tesla q1 results"
+    },
+    {
+      "id": "2",
+      "title": "My second Post",
+      "datetime": "July 01,2021 11:17:35 AM",
+      "body": "Make a video about Tesla q1 results"
+    },
+    {
+      "id": "3",
+      "title": "My Third Post",
+      "datetime": "July 01,2021 11:17:35 AM",
+      "body": "Make a video about Tesla q1 results"
+    }
+  ]
+}
